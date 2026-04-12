@@ -1,40 +1,43 @@
 #include "RPN.hpp"
 
-int rpn(char **argv){
-  std::stack<int> st;
-  std::string expr = argv[1];
+RPN::RPN() {}
+RPN::RPN(const RPN& other) { *this = other; }
+RPN& RPN::operator=(const RPN& other) {
+  if (this != &other)
+    _stack = other._stack;
+  return *this;
+}
+RPN::~RPN() {}
+
+void RPN::applyOperator(char op){
+  if (_stack.size() < 2)
+    throw std::runtime_error("Error");
+  int b = _stack.top(); _stack.pop();
+  int a = _stack.top(); _stack.pop();
+  if (op == '+') _stack.push(a + b);
+  else if (op == '-') _stack.push(a - b);
+  else if (op == '*') _stack.push(a * b);
+  else{
+    if (b == 0)
+      throw std::runtime_error("Error");
+    _stack.push(a / b);
+  }
+}
+int RPN::evaluate(const std::string &expr){
+  while (!_stack.empty()) _stack.pop();
   for (size_t i = 0; i < expr.size(); i++){
     if (expr[i] == ' ')
       continue;
     if (isdigit(expr[i]))
-      st.push(expr[i] - '0');
+      _stack.push(expr[i] - '0');
     else if (expr[i] == '+' || expr[i] == '-' || expr[i] == '*' || expr[i] == '/'){
-      if (st.size() < 2){
-        std::cerr << "Error" << std::endl;
-        return 1;
-      }
-      int b = st.top(); st.pop();
-      int a = st.top(); st.pop();
-      if (expr[i] == '+') st.push(a + b);
-      else if (expr[i] == '-') st.push(a - b);
-      else if (expr[i] == '*') st.push(a * b);
-      else{
-        if (b == 0){
-          std::cerr << "Error" << std::endl;
-          return 1;
-        }
-        st.push(a / b);
-      }
+      applyOperator(expr[i]);
     }
-    else{
-      std::cerr << "Error" << std::endl;
-      return 1;
-    }
+    else
+      throw std::runtime_error("Error");
   }
-  if (st.size() != 1){
-    std::cerr << "Error" << std::endl;
-    return 1;
-  }
-  std::cout << st.top() << std::endl;
+  if (_stack.size() != 1)
+    throw std::runtime_error("Error");
+  return _stack.top();
   return 0;
 }

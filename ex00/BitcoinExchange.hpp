@@ -6,7 +6,7 @@
 /*   By: taya <taya@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/10 12:08:38 by taya              #+#    #+#             */
-/*   Updated: 2026/04/10 12:08:39 by taya             ###   ########.fr       */
+/*   Updated: 2026/04/12 14:58:42 by taya             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,12 +18,23 @@
 #include <sstream>
 #include <iomanip>
 #include <cctype>
+#include <cstdlib>
 
+class BitcoinExchange {
+  private:
+    std::map<std::string, float> _database;
 
-bool isvalidate_date(const std::string &date);
+    bool        isValidDate(const std::string& date) const;
+    bool        isValidValue(const std::string& valueStr, float& value) const;
+    float       getRate(const std::string& date) const;
+    void        loadDatabase(const std::string& filename);
 
-std::map<std::string, float>& fill_map(std::map<std::string, float>& map, std::ifstream &infile);
+  public:
+    BitcoinExchange();
+    BitcoinExchange(const std::string& dbFile);
+    BitcoinExchange(const BitcoinExchange& other);
+    BitcoinExchange& operator=(const BitcoinExchange& other);
+    ~BitcoinExchange();
 
-float get_rate(std::map<std::string, float> &map, const std::string &date);
-
-void calculator(std::map<std::string, float>& map, std::ifstream &infile);
+    void calculate(const std::string& inputFile) const;
+};

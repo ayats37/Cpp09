@@ -5,5 +5,13 @@ int main(int argc, char **argv){
     std::cerr << "Error" << std::endl;
     return 1;
   }
-  return rpn(argv);
+  try {
+  RPN rpn;
+    std::cout << rpn.evaluate(argv[1]) << std::endl;
+  } 
+  catch (std::exception& e) {
+    std::cerr << e.what() << std::endl;
+    return 1;
+  }
+  return 0;
 }
