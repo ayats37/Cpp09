@@ -6,7 +6,7 @@
 /*   By: taya <taya@student.42.fr>                  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/10 12:08:40 by taya              #+#    #+#             */
-/*   Updated: 2026/04/12 14:56:12 by taya             ###   ########.fr       */
+/*   Updated: 2026/04/12 18:37:55 by taya             ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,6 +28,13 @@ BitcoinExchange& BitcoinExchange::operator=(const BitcoinExchange& other) {
 }
 BitcoinExchange::~BitcoinExchange() {}
 
+static std::string trim(const std::string& s) {
+  size_t start = s.find_first_not_of(" \t\r\n");
+  size_t end   = s.find_last_not_of(" \t\r\n");
+  if (start == std::string::npos) return "";
+  return s.substr(start, end - start + 1);
+}
+
 void BitcoinExchange::loadDatabase(const std::string &filename){
   std::ifstream infile(filename.c_str());
     if (!infile.is_open())
@@ -38,7 +45,13 @@ void BitcoinExchange::loadDatabase(const std::string &filename){
       std::stringstream ss(line);
       std::string date, value;
       if (!std::getline(ss, date, ',') || !std::getline(ss, value)) continue;
-      _database[date] = std::atof(value.c_str());
+      date = trim(date);
+      value = trim(value);
+      if (date.empty() || value.empty()) continue;
+      char* end;
+      float val = std::strtof(value.c_str(), &end);
+      if (*end != '\0') continue;
+      _database[date] = val;
     }
 }
 bool BitcoinExchange::isValidDate(const std::string &date) const {
@@ -47,8 +60,8 @@ bool BitcoinExchange::isValidDate(const std::string &date) const {
   for (size_t i = 0; i < date.length(); i++){
     if (i == 4 || i == 7)
       continue;
-    if (!isdigit(date[i]))
-      return false;}
+      if (!std::isdigit(date[i])) return false;
+  }
       
   int year = std::atoi(date.substr(0, 4).c_str());
   int month = std::atoi(date.substr(5, 2).c_str());
@@ -63,6 +76,7 @@ bool BitcoinExchange::isValidDate(const std::string &date) const {
   return (day <= 31);
 }
 bool BitcoinExchange::isValidValue(const std::string& valueStr, float& value) const {
+  if (valueStr.empty()) return false;
   char* end;
   value = std::strtof(valueStr.c_str(), &end);
   return (*end == '\0');
@@ -83,7 +97,7 @@ void BitcoinExchange::calculate(const std::string& inputFile) const{
     if (!infile.is_open())
       throw std::runtime_error("Error: could not open file.");
     std::string line;
-    std::getline(infile, line); // skip header
+    std::getline(infile, line);
     while (std::getline(infile, line)) {
       std::stringstream ss(line);
       std::string date, valueStr;
@@ -91,10 +105,8 @@ void BitcoinExchange::calculate(const std::string& inputFile) const{
         std::cerr << "Error: bad input => " << line << std::endl;
         continue;
     }
-    size_t pos = date.find_last_not_of(" ");
-    if (pos != std::string::npos) date.erase(pos + 1);
-    valueStr.erase(0, valueStr.find_first_not_of(" "));
-
+    date = trim(date);
+    valueStr = trim(valueStr);
     if (date.empty() || valueStr.empty() || !isValidDate(date))
     {
       std::cerr << "Error: bad input => " << line << std::endl;
