@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   PmergeMe.cpp                                       :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: taya <taya@student.42.fr>                  +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2026/04/10 16:00:51 by taya              #+#    #+#             */
+/*   Updated: 2026/04/12 13:25:48 by taya             ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "PmergeMe.hpp"
 
 PmergeMe::PmergeMe(){}
@@ -40,49 +52,128 @@ void PmergeMe::fillContainers(char **argv){
     _deq.push_back(val);
   }
 }
-
-void PmergeMe::mergeInsertVector(std::vector<int>& arr){
-  if (arr.size() <= 1) return;
-  std::vector<int> mainchain;
-  std::vector<int> pending;
-  //pair element
-  size_t i = 0;
-  for (; i + 1 < arr.size(); i+=2){
-    if (arr[i] > arr[i + 1])
-      std::swap(arr[i], arr[i + 1]);
-    mainchain.push_back(arr[i + 1]);
-    pending.push_back(arr[i]);
+static size_t jacobsthal(size_t n){
+  if (n == 0) return 0;
+  if (n == 1) return 1;
+  size_t a = 0, b = 1;
+  for (size_t i = 2; i <= n; i++){
+    size_t c = b + 2 * a;
+    a = b;
+    b = c;
   }
-  if (i < arr.size())
-    mainchain.push_back(arr[i]);
-  //recursive sort
-  mergeInsertVector(mainchain);
-  // insert pending using binary insert
-  for (size_t j = 0; j < pending.size(); j++){
-    std::vector<int>::iterator pos = std::lower_bound(mainchain.begin(), mainchain.end(), pending[j]);
-    mainchain.insert(pos, pending[j]);
-  }
+  return b;
+}
 
+void PmergeMe::mergeInsertVector(std::vector<int>& arr)
+{
+    if (arr.size() <= 1)
+        return;
+
+    std::vector<int> mainchain;
+    std::vector<int> pending;
+
+    bool hasStraggler = (arr.size() % 2 != 0);
+    int straggler = hasStraggler ? arr.back() : 0;
+
+    size_t i = 0;
+    for (; i + 1 < arr.size(); i += 2)
+    {
+        if (arr[i] > arr[i + 1])
+            std::swap(arr[i], arr[i + 1]);
+
+        mainchain.push_back(arr[i + 1]);
+        pending.push_back(arr[i]);
+    }
+    if (hasStraggler)
+        pending.push_back(straggler);
+    mergeInsertVector(mainchain);
+    std::vector<bool> inserted(pending.size(), false);
+    size_t k = 1;
+    while (true)
+    {
+      size_t start = jacobsthal(k);
+      size_t end = jacobsthal(k + 1);
+
+      if (start >= pending.size())
+        break;
+      if (end > pending.size())
+        end = pending.size();
+      for (size_t idx = end; idx > start; )
+      {
+        --idx;
+        if (!inserted[idx])
+        {
+          std::vector<int>::iterator pos =
+          std::lower_bound(mainchain.begin(), mainchain.end(), pending[idx]);
+          mainchain.insert(pos, pending[idx]);
+          inserted[idx] = true;
+        }
+      }
+      k++;
+    }
+  for (size_t idx = 0; idx < pending.size(); idx++)
+  {
+    if (!inserted[idx])
+    {
+      std::vector<int>::iterator pos =
+      std::lower_bound(mainchain.begin(), mainchain.end(), pending[idx]);
+      mainchain.insert(pos, pending[idx]);
+    }
+  }
   arr = mainchain;
 }
 
-void PmergeMe::mergeInsertDeque(std::deque<int>& arr) {
-  if (arr.size() <= 1) return;
+void PmergeMe::mergeInsertDeque(std::deque<int>& arr)
+{
+  if (arr.size() <= 1)
+    return;
   std::deque<int> mainChain;
   std::deque<int> pending;
+  bool hasStraggler = (arr.size() % 2 != 0);
+  int straggler = hasStraggler ? arr.back() : 0;
+
   size_t i = 0;
-  for (; i + 1 < arr.size(); i += 2) {
+  for (; i + 1 < arr.size(); i += 2)
+  {
     if (arr[i] > arr[i + 1])
-      std::swap(arr[i], arr[i + 1]);
+    std::swap(arr[i], arr[i + 1]);
     mainChain.push_back(arr[i + 1]);
     pending.push_back(arr[i]);
   }
-  if (i < arr.size())
-    mainChain.push_back(arr[i]);
+  if (hasStraggler)
+    pending.push_back(straggler);
   mergeInsertDeque(mainChain);
-  for (size_t j = 0; j < pending.size(); j++) {
-    std::deque<int>::iterator pos = std::lower_bound(mainChain.begin(), mainChain.end(), pending[j]);
-    mainChain.insert(pos, pending[j]);
+  std::vector<bool> inserted(pending.size(), false);
+  size_t k = 1;
+  while (true)
+  {
+    size_t start = jacobsthal(k);
+    size_t end = jacobsthal(k + 1);
+    if (start >= pending.size())
+      break;
+    if (end > pending.size())
+      end = pending.size();
+    for (size_t idx = end; idx > start; )
+    {
+      --idx;
+      if (!inserted[idx])
+      {
+        std::deque<int>::iterator pos =
+        std::lower_bound(mainChain.begin(), mainChain.end(), pending[idx]);
+        mainChain.insert(pos, pending[idx]);
+        inserted[idx] = true;
+            }
+      }
+      k++;
+  }
+  for (size_t idx = 0; idx < pending.size(); idx++)
+  {
+    if (!inserted[idx])
+    {
+      std::deque<int>::iterator pos =
+      std::lower_bound(mainChain.begin(), mainChain.end(), pending[idx]);
+      mainChain.insert(pos, pending[idx]);
+    }
   }
   arr = mainChain;
 }
