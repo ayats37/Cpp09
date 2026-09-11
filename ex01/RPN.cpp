@@ -17,7 +17,7 @@ void RPN::applyOperator(char op){
   if (op == '+') _stack.push(a + b);
   else if (op == '-') _stack.push(a - b);
   else if (op == '*') _stack.push(a * b);
-  else{
+  else if (op == '/'){
     if (b == 0)
       throw std::runtime_error("Error");
     _stack.push(a / b);
@@ -39,5 +39,4 @@ int RPN::evaluate(const std::string &expr){
   if (_stack.size() != 1)
     throw std::runtime_error("Error");
   return _stack.top();
-  return 0;
 }

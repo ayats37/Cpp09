@@ -1,46 +1,38 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   PmergeMe.hpp                                       :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: taya <taya@student.42.fr>                  +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/04/10 16:00:53 by taya              #+#    #+#             */
-/*   Updated: 2026/04/10 16:00:54 by taya             ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #pragma once
 
-#include <vector>
-#include <deque>
-#include <string>
-#include <ctime>
-#include <cstdlib>
-#include <cctype>
-#include <iostream>
-#include <climits>
-#include <algorithm>
 
+# include <iostream>
+# include <vector>
+# include <deque>
+# include <string>
+# include <cstdlib>
+# include <climits>
+# include <ctime>
+# include <stdexcept>
 
-class PmergeMe{
+class PmergeMe
+{
+	public:
+		PmergeMe();
+		PmergeMe(int argc, char **argv);
+		PmergeMe(const PmergeMe &other);
+		PmergeMe &operator=(const PmergeMe &other);
+		~PmergeMe();
 
-  private:
-    std::vector<int> _vec;
-    std::deque<int> _deq;
+		void sort();
 
-    bool isValidNumber(const std::string& s);
-    void fillContainers(char **argv);
-    void mergeInsertVector(std::vector<int>& arr);
-    void mergeInsertDeque(std::deque<int>& arr);
+	private:
+		std::vector<int> _vec;
+		std::deque<int>  _deq;
 
-  public:
-    PmergeMe();
-    PmergeMe(char **argv);
-    PmergeMe(const PmergeMe& other);
-    PmergeMe& operator=(const PmergeMe& other);
-    ~PmergeMe();
+		static bool isNumber(const std::string &str);
+		static int parseNumber(const std::string &str);
 
-    void sortAndDisplay();
+		static void mergeInsertVector(std::vector<int> &container);
+		static void mergeInsertDeque(std::deque<int> &container);
 
+		static void insertVector(std::vector<int> &container, int value);
+		static void insertDeque(std::deque<int> &container, int value);
+
+		static void printVector(const std::vector<int> &container);
 };

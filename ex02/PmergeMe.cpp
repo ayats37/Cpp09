@@ -1,213 +1,257 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   PmergeMe.cpp                                       :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: taya <taya@student.42.fr>                  +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/04/10 16:00:51 by taya              #+#    #+#             */
-/*   Updated: 2026/04/12 13:25:48 by taya             ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #include "PmergeMe.hpp"
 
-PmergeMe::PmergeMe(){}
-PmergeMe::PmergeMe(char **argv){
-  fillContainers(argv);
-}
-PmergeMe::~PmergeMe() {}
-
-PmergeMe::PmergeMe(const PmergeMe& other){
-  *this = other;
-}
-
-PmergeMe& PmergeMe::operator=(const PmergeMe& other){
-  if (this != &other) {
-    _vec = other._vec;
-    _deq = other._deq;
-  }
-  return *this;
-}
-
-bool PmergeMe::isValidNumber(const std::string& s){
-  if (s.empty()) return false;
-  for (size_t i = 0; i < s.size(); i++)
-  {
-    if (!std::isdigit(s[i]))
-      return false;
-  }
-  return true;
-}
-
-void PmergeMe::fillContainers(char **argv){
-  for (size_t i = 1; argv[i]; i++){
-    std::string s(argv[i]);
-    if (!isValidNumber(s))
-      throw std::runtime_error("Error");
-    long val = std::atol(s.c_str());
-    if (val < 0 || val > INT_MAX)
-      throw std::runtime_error("Error");
-    _vec.push_back(val);
-    _deq.push_back(val);
-  }
-}
-static size_t jacobsthal(size_t n){
-  if (n == 0) return 0;
-  if (n == 1) return 1;
-  size_t a = 0, b = 1;
-  for (size_t i = 2; i <= n; i++){
-    size_t c = b + 2 * a;
-    a = b;
-    b = c;
-  }
-  return b;
-}
-
-void PmergeMe::mergeInsertVector(std::vector<int>& arr)
+PmergeMe::PmergeMe()
 {
-    if (arr.size() <= 1)
-        return;
-
-    std::vector<int> mainchain;
-    std::vector<int> pending;
-
-    bool hasStraggler = (arr.size() % 2 != 0);
-    int straggler = hasStraggler ? arr.back() : 0;
-
-    size_t i = 0;
-    for (; i + 1 < arr.size(); i += 2)
-    {
-        if (arr[i] > arr[i + 1])
-            std::swap(arr[i], arr[i + 1]);
-
-        mainchain.push_back(arr[i + 1]);
-        pending.push_back(arr[i]);
-    }
-    if (hasStraggler)
-        pending.push_back(straggler);
-    mergeInsertVector(mainchain);
-    std::vector<bool> inserted(pending.size(), false);
-    size_t k = 1;
-    while (true)
-    {
-      size_t start = jacobsthal(k);
-      size_t end = jacobsthal(k + 1);
-
-      if (start >= pending.size())
-        break;
-      if (end > pending.size())
-        end = pending.size();
-      for (size_t idx = end; idx > start; )
-      {
-        --idx;
-        if (!inserted[idx])
-        {
-          std::vector<int>::iterator pos =
-          std::lower_bound(mainchain.begin(), mainchain.end(), pending[idx]);
-          mainchain.insert(pos, pending[idx]);
-          inserted[idx] = true;
-        }
-      }
-      k++;
-    }
-  for (size_t idx = 0; idx < pending.size(); idx++)
-  {
-    if (!inserted[idx])
-    {
-      std::vector<int>::iterator pos =
-      std::lower_bound(mainchain.begin(), mainchain.end(), pending[idx]);
-      mainchain.insert(pos, pending[idx]);
-    }
-  }
-  arr = mainchain;
 }
 
-void PmergeMe::mergeInsertDeque(std::deque<int>& arr)
+PmergeMe::PmergeMe(int argc, char **argv)
 {
-  if (arr.size() <= 1)
-    return;
-  std::deque<int> mainChain;
-  std::deque<int> pending;
-  bool hasStraggler = (arr.size() % 2 != 0);
-  int straggler = hasStraggler ? arr.back() : 0;
+	int	i;
 
-  size_t i = 0;
-  for (; i + 1 < arr.size(); i += 2)
-  {
-    if (arr[i] > arr[i + 1])
-    std::swap(arr[i], arr[i + 1]);
-    mainChain.push_back(arr[i + 1]);
-    pending.push_back(arr[i]);
-  }
-  if (hasStraggler)
-    pending.push_back(straggler);
-  mergeInsertDeque(mainChain);
-  std::vector<bool> inserted(pending.size(), false);
-  size_t k = 1;
-  while (true)
-  {
-    size_t start = jacobsthal(k);
-    size_t end = jacobsthal(k + 1);
-    if (start >= pending.size())
-      break;
-    if (end > pending.size())
-      end = pending.size();
-    for (size_t idx = end; idx > start; )
-    {
-      --idx;
-      if (!inserted[idx])
-      {
-        std::deque<int>::iterator pos =
-        std::lower_bound(mainChain.begin(), mainChain.end(), pending[idx]);
-        mainChain.insert(pos, pending[idx]);
-        inserted[idx] = true;
-            }
-      }
-      k++;
-  }
-  for (size_t idx = 0; idx < pending.size(); idx++)
-  {
-    if (!inserted[idx])
-    {
-      std::deque<int>::iterator pos =
-      std::lower_bound(mainChain.begin(), mainChain.end(), pending[idx]);
-      mainChain.insert(pos, pending[idx]);
-    }
-  }
-  arr = mainChain;
+	if (argc < 2)
+		throw std::runtime_error("Error");
+
+	i = 1;
+	while (i < argc)
+	{
+		if (!isNumber(argv[i]))
+			throw std::runtime_error("Error");
+
+		this->_vec.push_back(parseNumber(argv[i]));
+		this->_deq.push_back(parseNumber(argv[i]));
+		i++;
+	}
 }
 
-void PmergeMe::sortAndDisplay(){
-  std::cout << "Before: ";
-  for (size_t i = 0; i < _vec.size(); i++)
-    std::cout << _vec[i] << " ";
-  std::cout << std::endl;
-
-  // VECTOR timing
-  clock_t start = clock();
-  mergeInsertVector(_vec);
-  clock_t end = clock();
-  double vecTime = (double)(end - start) * 1000000 / CLOCKS_PER_SEC;
-  // Deque timing
-  start = clock();
-  mergeInsertDeque(_deq);
-  end = clock();
-  double deqTime = (double)(end - start) * 1000000 / CLOCKS_PER_SEC;
-
-  std::cout << "After: ";
-  for (size_t i = 0; i < _vec.size(); i++)
-    std::cout << _vec[i] << " ";
-  std::cout << std::endl;
-  std::cout << "Time to process a range of " << _vec.size() << " elements with std::vector : "
-      << vecTime << " us" << std::endl;
-
-  std::cout << "Time to process a range of " << _deq.size() << " elements with std::deque : "
-      << deqTime << " us" << std::endl;
-
+PmergeMe::PmergeMe(const PmergeMe &other)
+	: _vec(other._vec), _deq(other._deq)
+{
 }
 
+PmergeMe &PmergeMe::operator=(const PmergeMe &other)
+{
+	if (this != &other)
+	{
+		this->_vec = other._vec;
+		this->_deq = other._deq;
+	}
+	return (*this);
+}
 
+PmergeMe::~PmergeMe()
+{
+}
 
+bool PmergeMe::isNumber(const std::string &str)
+{
+	size_t i;
 
+	if (str.empty())
+		return (false);
 
+	i = 0;
+	while (i < str.size())
+	{
+		if (str[i] < '0' || str[i] > '9')
+			return (false);
+		i++;
+	}
+
+	return (true);
+}
+
+int PmergeMe::parseNumber(const std::string &str)
+{
+	long	value;
+
+	value = std::strtol(str.c_str(), NULL, 10);
+
+	if (value <= 0 || value > INT_MAX)
+		throw std::runtime_error("Error");
+
+	return (static_cast<int>(value));
+}
+
+void PmergeMe::insertVector(std::vector<int> &container, int value)
+{
+	std::vector<int>::iterator it;
+
+	it = container.begin();
+
+	while (it != container.end() && *it < value)
+		++it;
+
+	container.insert(it, value);
+}
+
+void PmergeMe::insertDeque(std::deque<int> &container, int value)
+{
+	std::deque<int>::iterator it;
+
+	it = container.begin();
+
+	while (it != container.end() && *it < value)
+		++it;
+
+	container.insert(it, value);
+}
+
+void PmergeMe::mergeInsertVector(std::vector<int> &container)
+{
+	std::vector<int>	main;
+	std::vector<int>	pending;
+	int					odd;
+	bool				hasOdd;
+	size_t				i;
+
+	if (container.size() <= 1)
+		return;
+
+	hasOdd = false;
+	odd = 0;
+	i = 0;
+
+	while (i + 1 < container.size())
+	{
+		if (container[i] < container[i + 1])
+		{
+			main.push_back(container[i + 1]);
+			pending.push_back(container[i]);
+		}
+		else
+		{
+			main.push_back(container[i]);
+			pending.push_back(container[i + 1]);
+		}
+		i += 2;
+	}
+
+	if (i < container.size())
+	{
+		odd = container[i];
+		hasOdd = true;
+	}
+
+	mergeInsertVector(main);
+
+	insertVector(main, pending[0]);
+
+	i = 1;
+	while (i < pending.size())
+	{
+		insertVector(main, pending[i]);
+		i++;
+	}
+
+	if (hasOdd)
+		insertVector(main, odd);
+
+	container = main;
+}
+
+void PmergeMe::mergeInsertDeque(std::deque<int> &container)
+{
+	std::deque<int>	main;
+	std::deque<int>	pending;
+	int				odd;
+	bool			hasOdd;
+	size_t			i;
+
+	if (container.size() <= 1)
+		return;
+
+	hasOdd = false;
+	odd = 0;
+	i = 0;
+
+	while (i + 1 < container.size())
+	{
+		if (container[i] < container[i + 1])
+		{
+			main.push_back(container[i + 1]);
+			pending.push_back(container[i]);
+		}
+		else
+		{
+			main.push_back(container[i]);
+			pending.push_back(container[i + 1]);
+		}
+		i += 2;
+	}
+
+	if (i < container.size())
+	{
+		odd = container[i];
+		hasOdd = true;
+	}
+
+	mergeInsertDeque(main);
+
+	insertDeque(main, pending[0]);
+
+	i = 1;
+	while (i < pending.size())
+	{
+		insertDeque(main, pending[i]);
+		i++;
+	}
+
+	if (hasOdd)
+		insertDeque(main, odd);
+
+	container = main;
+}
+
+void PmergeMe::printVector(const std::vector<int> &container)
+{
+	std::vector<int>::const_iterator it;
+
+	it = container.begin();
+	while (it != container.end())
+	{
+		std::cout << *it;
+		++it;
+
+		if (it != container.end())
+			std::cout << " ";
+	}
+	std::cout << std::endl;
+}
+
+void PmergeMe::sort()
+{
+	clock_t	start;
+	clock_t	end;
+	double	vectorTime;
+	double	dequeTime;
+
+	std::cout << "Before: ";
+	printVector(this->_vec);
+
+	start = clock();
+	mergeInsertVector(this->_vec);
+	end = clock();
+
+	vectorTime = static_cast<double>(end - start)
+		/ CLOCKS_PER_SEC * 1000000.0;
+
+	start = clock();
+	mergeInsertDeque(this->_deq);
+	end = clock();
+
+	dequeTime = static_cast<double>(end - start)
+		/ CLOCKS_PER_SEC * 1000000.0;
+
+	std::cout << "After: ";
+	printVector(this->_vec);
+
+	std::cout << "Time to process a range of "
+		<< this->_vec.size()
+		<< " elements with std::vector : "
+		<< vectorTime << " us" << std::endl;
+
+	std::cout << "Time to process a range of "
+		<< this->_deq.size()
+		<< " elements with std::deque : "
+		<< dequeTime << " us" << std::endl;
+}

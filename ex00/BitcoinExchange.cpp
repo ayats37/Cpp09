@@ -1,16 +1,5 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   BitcoinExchange.cpp                                :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: taya <taya@student.42.fr>                  +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/04/10 12:08:40 by taya              #+#    #+#             */
-/*   Updated: 2026/04/12 18:37:55 by taya             ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #include "BitcoinExchange.hpp"
+
 BitcoinExchange::BitcoinExchange() {}
 
 BitcoinExchange::BitcoinExchange(const std::string& dbFile) {
@@ -54,6 +43,7 @@ void BitcoinExchange::loadDatabase(const std::string &filename){
       _database[date] = val;
     }
 }
+
 bool BitcoinExchange::isValidDate(const std::string &date) const {
   if(date.length() != 10 || date[4] != '-' || date[7] != '-') return false;
 
@@ -75,6 +65,7 @@ bool BitcoinExchange::isValidDate(const std::string &date) const {
   }
   return (day <= 31);
 }
+
 bool BitcoinExchange::isValidValue(const std::string& valueStr, float& value) const {
   if (valueStr.empty()) return false;
   char* end;
